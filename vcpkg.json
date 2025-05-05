@@ -1,0 +1,9 @@
+{
+    "name": "nadi-interconnect",
+    "version": "1.0",
+    "dependencies": [
+        "pkgconf",
+        "nlohmann-json"
+    ]
+}
+

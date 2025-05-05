@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.27)
 
 set(PROJECT_NAME "nadi_interconnect")
 
@@ -13,7 +13,7 @@ FetchContent_Populate(
 FetchContent_Populate(
   CLI11
   GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
-  GIT_TAG v2.3.2
+  GIT_TAG v2.4.0
 )
 
 # get latest git tag
@@ -66,14 +66,6 @@ add_executable(${PROJECT_NAME}
 find_or_fetch_package(
   cmake_git_version 0.1 GIT_REPOSITORY
   https://github.com/dominicpoeschko/cmake_git_version.git GIT_TAG master)
-
-
-find_package(Boost REQUIRED COMPONENTS system thread filesystem asio regex)
-target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE Boost::system Boost::thread Boost::filesystem Boost::regex)
-
-find_package(fmt CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC fmt::fmt-header-only)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE CLI11::CLI11)
 

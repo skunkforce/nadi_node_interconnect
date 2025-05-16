@@ -3,7 +3,8 @@
     "version": "1.0",
     "dependencies": [
         "pkgconf",
-        "nlohmann-json"
+        "nlohmann-json",
+        "scope-guard"
     ]
 }
 

@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.27)
 
 set(PROJECT_NAME "nadi_interconnect")
 
+# Set C++ standard to C++23
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) # Disable compiler-specific extensions
+
 include(FetchContent)
 FetchContent_Populate(
   vcpkg
@@ -15,6 +20,7 @@ FetchContent_Populate(
   GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
   GIT_TAG v2.4.0
 )
+
 
 # get latest git tag
 execute_process(
@@ -57,19 +63,33 @@ endif()
 include(cmake_helpers/BuildOptions.cmake)
 include(cmake_helpers/FindOrFetch.cmake)
 
+# Find scope-guard header
+find_path(SCOPE_GUARD_INCLUDE_DIRS "scope_guard.hpp")
+if(NOT SCOPE_GUARD_INCLUDE_DIRS)
+    message(FATAL_ERROR "scope-guard header not found. Ensure scope-guard is installed via vcpkg.")
+endif()
+
+
 add_subdirectory(${cli11_SOURCE_DIR} ${cli11_BINARY_DIR})
 
 add_executable(${PROJECT_NAME}
-               src/main.cpp
-               include/nadi.h)
+               src/main.cpp)
+
+target_include_directories(${PROJECT_NAME}
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:include>
+    )
 
 find_or_fetch_package(
   cmake_git_version 0.1 GIT_REPOSITORY
   https://github.com/dominicpoeschko/cmake_git_version.git GIT_TAG master)
 
+
 target_link_libraries(${PROJECT_NAME} PRIVATE CLI11::CLI11)
 
 find_package(nlohmann_json CONFIG REQUIRED)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)

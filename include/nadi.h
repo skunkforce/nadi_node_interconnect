@@ -49,7 +49,7 @@ DLL_EXPORT nadi_status nadi_init(nadi_instance_handle* instance, nadi_receive_ca
 
 DLL_EXPORT nadi_status nadi_deinit(nadi_instance_handle instance);
 
-DLL_EXPORT nadi_status nadi_send(nadi_message* message);
+DLL_EXPORT nadi_status nadi_send(nadi_message* message, nadi_instance_handle instance);
 
 DLL_EXPORT void nadi_free(nadi_message*);
 

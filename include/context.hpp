@@ -1,10 +1,10 @@
-#ifndef MANAGEMENT_HPP
-#define MANAGEMENT_HPP
+#ifndef CONTEXT_HPP
+#define CONTEXT_HPP
 #include "message_routing.hpp"
 #include "node_management.hpp"
 #include "scope_guard.hpp"
 
-class management {
+class context_t {
     node_management nodes_;
     message_routing routing_;
     public:
@@ -18,7 +18,7 @@ class management {
             });
             if(msg->channel != 0xF000){
                 //not messages on the graph component
-                const auto& destinations = routing_.destinations_from({msg->instance, msg->channel});
+                const auto& destinations = routing_.destinations_from({msg->node, msg->channel});
                 if(destinations.size() == 1){ 
                     msg_guard.dismiss(); //will be recycled by the consumer
                     //if there is only one then just forward
@@ -33,14 +33,14 @@ class management {
             else{
             auto json_meta = nlohmann::json::parse(msg->meta);
             if(json_meta.contains("format") && json_meta["format"] == "json"){
-                    auto json_data = nlohmann::json::parse(msg->data);
+                    auto json_data = nlohmann::json::parse((const char*)msg->data);
                     if (json_data["type"] == "nodes.instances.construct") {
                         std::string node_name = json_data["node_name"];
                         std::string instance = json_data["instance"];
-                        nodes_.construct_node(node_name, instance, msg->instance);
+                        nodes_.construct_node(node_name, instance, msg->node);
                     } else if (json_data["type"] == "nodes.instances.destruct") {
                         std::string instance = json_data["instance"];
-                        nodes_.destruct_node(instance, msg->instance);
+                        nodes_.destruct_node(instance, msg->node);
                     } else if (json_data["type"] == "nodes.instances.connections.connect") {
                         std::string source_instance = json_data["source"][0];
                         unsigned int source_channel = json_data["source"][1];
@@ -54,11 +54,11 @@ class management {
                         unsigned int target_channel = json_data["target"][1];
                         routing_.disconnect(source_instance, source_channel, target_instance, target_channel);
                     } else if (json_data["type"] == "nodes.instances.connections") {
-                        routing_.send_connections_list(msg->instance);
+                        routing_.send_connections_list(msg->node);
                     } else if (json_data["type"] == "nodes.loaded") {
-                        nodes_.send_loaded_list(msg->instance);
+                        nodes_.send_loaded_list(msg->node);
                     } else if (json_data["type"] == "nodes.instances") {
-                        nodes_.send_instances_list(msg->instance);
+                        nodes_.send_instances_list(msg->node);
                     }
                 }
             }
@@ -66,6 +66,11 @@ class management {
         catch (...){
             //TODO logg errors, maybe handle some stuff
         }
+    }
+    void free(nadi_message* msg){
+        delete[] msg->data;
+        delete[] msg->meta;
+        delete msg;
     }
     nlohmann::json to_json(){
         return nodes_.to_json();

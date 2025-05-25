@@ -1,3 +1,6 @@
 [submodule "cmake_helpers"]
 	path = cmake_helpers
 	url = git@github.com:AI-Gruppe/cmake_helpers.git
+[submodule "node-agnostic-datastream-interface"]
+	path = node-agnostic-datastream-interface
+	url = git@github.com:skunkforce/node-agnostic-datastream-interface.git

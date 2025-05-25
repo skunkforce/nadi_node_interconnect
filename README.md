@@ -421,15 +421,15 @@ struct nadi_message {
     char* data;              // Raw binary data
     unsigned int data_length;// Length of data in bytes
     nadi_free_callback free; // Callback to free the message
-    nadi_instance_handle instance; // Connection instance handle
+    nadi_node_handle instance; // Connection instance handle
     unsigned int channel;    // Channel identifier
 };
 ```
 
 ### Functions
-- `nadi_init(nadi_instance_handle* instance, nadi_receive_callback callback)`: Initializes a NADI instance with a receive callback.
-- `nadi_deinit(nadi_instance_handle instance)`: Deinitializes an instance, blocking until threads complete.
-- `nadi_send(nadi_message* message, nadi_instance_handle instance)`: Sends a message, transferring ownership on success.
+- `nadi_init(nadi_node_handle* instance, nadi_receive_callback callback)`: Initializes a NADI instance with a receive callback.
+- `nadi_deinit(nadi_node_handle instance)`: Deinitializes an instance, blocking until threads complete.
+- `nadi_send(nadi_message* message, nadi_node_handle instance)`: Sends a message, transferring ownership on success.
 - `nadi_free(nadi_message* message)`: Frees a message using its `free` callback.
 - `nadi_descriptor()`: Returns a JSON string with node metadata (e.g., `{"name":"node","version":"1.0.0"}`).
 

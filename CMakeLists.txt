@@ -93,3 +93,6 @@ find_package(nlohmann_json CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
+
+add_subdirectory(node-agnostic-datastream-interface)
+target_link_libraries(${PROJECT_NAME} PRIVATE nadi::nadi)

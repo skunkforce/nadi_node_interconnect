@@ -1,7 +1,7 @@
 #ifndef NODE_MANAGEMENT_HPP
 #define NODE_MANAGEMENT_HPP
 #include <nlohmann/json.hpp>
-#include "nadi.h"
+#include <nadi/nadi.h>
 #include <vector>
 #include <tuple>
 #include "find_nodes.hpp"
@@ -16,17 +16,17 @@ class node_management{
             nodes_.push_back({load_node(path.string()),{},path});
         }
     }
-    void construct_node(const std::string& node_name, const std::string& instance, nadi_instance_handle source_instance) {
+    void construct_node(const std::string& node_name, const std::string& instance, nadi_node_handle source_instance) {
         nadi_library lib = load_node("./nodes/" + node_name + ".dll"); // Adjust extension
         if (lib.dll) {
-            nadi_instance_handle node_instance;
+            nadi_node_handle node_instance;
             lib.init(&node_instance, callback);
             instance_map_[instance] = node_instance;
             library_map_[node_instance] = lib;
             // TODO: Send confirmation response
         }
     }
-    void destruct_node(const std::string& instance, nadi_instance_handle source_instance) {
+    void destruct_node(const std::string& instance, nadi_node_handle source_instance) {
         auto it = instance_map_.find(instance);
         if (it != instance_map_.end()) {
             auto& node_instance = it->second;
@@ -36,7 +36,7 @@ class node_management{
             // TODO: Send confirmation response
         }
     }
-    void send_loaded_list(nadi_instance_handle source_instance) {
+    void send_loaded_list(nadi_node_handle source_instance) {
         nlohmann::json response = {
             {"meta", {{"format", "json"}}},
             {"data", {
@@ -46,7 +46,7 @@ class node_management{
         };
         send_response(source_instance, response);
     }
-    void send_instances_list(nadi_instance_handle source_instance) {
+    void send_instances_list(nadi_node_handle source_instance) {
         nlohmann::json instances = nlohmann::json::array();
         for (const auto& [instance, data] : instance_map_) {
             instances.push_back({{"instance", instance}});
@@ -75,13 +75,13 @@ class node_management{
         }
         return node_json;
     }
-    nadi_library lib_from_instance(nadi_instance_handle h){
+    nadi_library lib_from_instance(nadi_node_handle h){
         return library_map_[h];
     }
     private:
-    std::map<std::string, nadi_instance_handle> instance_map_;
-    std::map<nadi_instance_handle,nadi_library> library_map_;
-    void send_response(nadi_instance_handle instance, const nlohmann::json& response){
+    std::map<std::string, nadi_node_handle> instance_map_;
+    std::map<nadi_node_handle,nadi_library> library_map_;
+    void send_response(nadi_node_handle instance, const nlohmann::json& response){
         
     }
 };

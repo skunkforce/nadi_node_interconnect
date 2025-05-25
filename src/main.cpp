@@ -4,22 +4,20 @@
 #include <nlohmann/json.hpp>
 #include "node.hpp"
 #include <print>
-#include "management.hpp"
+#include "context.hpp"
 #include <expected>
 #include "bootstrap.hpp"
 
 
-management mngr;
+context_t context;
 
 extern "C" {
     void callback(nadi_message* msg){
-        mngr.callback(msg);
+        context.callback(msg);
     }
 
     void free_msg(nadi_message* msg){
-        delete[] msg->data;
-        delete[] msg->meta;
-        delete msg;
+        context.free(msg);
     }
 }
 
@@ -51,9 +49,9 @@ int main(int argc, char **argv) {
     app.add_option("--bootstrap", bootstrap_file, "Path to bootstrap JSON file")->default_val("bootstrap.json");
     CLI11_PARSE(app, argc, argv);
 
-    mngr.load_nodes(nodes_dir);
-    std::print("nodes:{}",mngr.to_json().dump());
-    handle_bootstrap(bootstrap_file,mngr);
+    context.load_nodes(nodes_dir);
+    std::print("nodes:{}",context.to_json().dump());
+    handle_bootstrap(bootstrap_file,context);
 
     while(1){
         auto json = read_json_from_cin();
@@ -68,11 +66,11 @@ int main(int argc, char **argv) {
             if((*json)["meta"].contains("format")){
                 std::string meta = (*json)["meta"].dump();
                 msg->meta = new char[meta.size()+1];
-                strcpy(msg->meta,meta.c_str());
+                strcpy((char *)msg->meta,meta.c_str());
                 if((*json)["meta"]["format"] == "json"){
                     std::string data = (*json)["data"].dump();
                     msg->data = new char[data.size()+1];
-                    strcpy(msg->data,data.c_str());
+                    strcpy((char *)msg->data,data.c_str());
                 }
             }
         }

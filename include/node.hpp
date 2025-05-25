@@ -1,4 +1,4 @@
-#include "nadi.h"
+#include <nadi/nadi.h>
 
 // Platform-specific headers
 #ifdef _WIN32
@@ -8,9 +8,9 @@
 #endif
 
 // Function pointer types for DLL functions
-using nadi_init_pt = nadi_status (*)(nadi_instance_handle* instance, nadi_receive_callback);
-using nadi_deinit_pt = nadi_status (*)(nadi_instance_handle instance);
-using nadi_send_pt = nadi_status (*)(nadi_message* message, nadi_instance_handle instance);
+using nadi_init_pt = nadi_status (*)(nadi_node_handle* instance, nadi_receive_callback);
+using nadi_deinit_pt = nadi_status (*)(nadi_node_handle instance);
+using nadi_send_pt = nadi_status (*)(nadi_message* message, nadi_node_handle instance);
 using nadi_free_pt = void (*)(nadi_message*);
 using nadi_descriptor_pt = char* (*)();
 

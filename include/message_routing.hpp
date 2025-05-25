@@ -1,9 +1,9 @@
 #ifndef MESSAGE_ROUTING_HPP
 #define MESSAGE_ROUTING_HPP
-#include "nadi.h"
+#include <nadi/nadi.h>
 
 struct route_address{
-    nadi_instance_handle instance;
+    nadi_node_handle instance;
     unsigned int channel;
 };
 
@@ -27,7 +27,7 @@ public:
         // Remove connection from connections
         // TODO: Send confirmation response
     }
-    void send_connections_list(nadi_instance_handle source_instance) {
+    void send_connections_list(nadi_node_handle source_instance) {
         nlohmann::json connections = nlohmann::json::array();
         // Populate connections from internal routing data
         for (const auto& route : connections_) {
@@ -35,7 +35,7 @@ public:
             //     {"source", {route.source_instance, route.source_channel}},
             //     {"target", {route.target_instance, route.target_channel}}
             // });
-            //TODO get actual soource and dest from map of name to nadi_instance_handle
+            //TODO get actual soource and dest from map of name to nadi_node_handle
         }
         nlohmann::json response = {
             {"meta", {{"format", "json"}}},
@@ -54,7 +54,7 @@ public:
     }
 private:
     std::vector<routes> connections_;
-    void send_response(nadi_instance_handle instance, const nlohmann::json& response){}
+    void send_response(nadi_node_handle instance, const nlohmann::json& response){}
 };
 
 #endif

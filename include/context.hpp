@@ -112,8 +112,6 @@ class context_t {
     }
 };
 
-extern std::unique_ptr<context_t> context;
-
 
 
 #endif

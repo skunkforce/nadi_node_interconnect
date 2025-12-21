@@ -84,8 +84,6 @@ find_or_fetch_package(
   cmake_git_version 0.1 GIT_REPOSITORY
   https://github.com/dominicpoeschko/cmake_git_version.git GIT_TAG master)
 
-find_package(Boost REQUIRED)
-
 
 target_link_libraries(${PROJECT_NAME} PRIVATE CLI11::CLI11)
 
@@ -110,14 +108,14 @@ if(NADI_INTERCONNECT_BUILD_TESTS)
     target_link_libraries(${PROJECT_NAME}_test_generator
         PRIVATE 
             nadi::nadi
-            Boost::headers
+            nlohmann_json::nlohmann_json
     )
 
     add_library(${PROJECT_NAME}_test_printer SHARED tests/printer.cpp)
     target_link_libraries(${PROJECT_NAME}_test_printer
         PRIVATE 
             nadi::nadi
-            Boost::headers
+            nlohmann_json::nlohmann_json
     )
 
 endif()

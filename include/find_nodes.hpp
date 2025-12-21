@@ -7,7 +7,7 @@
 
 
 
-std::vector<std::filesystem::path> get_node_paths(const std::string& directory) {
+inline std::vector<std::filesystem::path> get_node_paths(const std::string& directory) {
     namespace fs = std::filesystem;
     std::vector<std::filesystem::path> out;
     try {

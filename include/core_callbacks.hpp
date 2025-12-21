@@ -3,7 +3,7 @@
 #include <nadi/nadi.h>
 
 extern "C" {
-    void callback(nadi_message* msg);
+    void callback(nadi_message* msg, void*);
 
     void free_msg(nadi_message* msg);
 }

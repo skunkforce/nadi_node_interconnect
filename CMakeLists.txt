@@ -56,7 +56,6 @@ if(MSVC)
     )
     #add_compile_options(/permissive-)
     #set(Boost_USE_STATIC_LIBS "On")
-    #find_package( Boost 1.70 COMPONENTS system thread regex REQUIRED )
 endif()
 
 
@@ -73,7 +72,7 @@ endif()
 add_subdirectory(${cli11_SOURCE_DIR} ${cli11_BINARY_DIR})
 
 add_executable(${PROJECT_NAME}
-               src/main.cpp)
+               src/main.cpp src/thread.cpp src/threads.cpp)
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC
@@ -84,6 +83,8 @@ target_include_directories(${PROJECT_NAME}
 find_or_fetch_package(
   cmake_git_version 0.1 GIT_REPOSITORY
   https://github.com/dominicpoeschko/cmake_git_version.git GIT_TAG master)
+
+find_package(Boost REQUIRED)
 
 
 target_link_libraries(${PROJECT_NAME} PRIVATE CLI11::CLI11)
@@ -96,3 +97,27 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 
 add_subdirectory(node-agnostic-datastream-interface)
 target_link_libraries(${PROJECT_NAME} PRIVATE nadi::nadi)
+
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+
+# -------------------------------------------------
+# Optional test
+# -------------------------------------------------
+option(NADI_INTERCONNECT_BUILD_TESTS "Build tests" ON)
+if(NADI_INTERCONNECT_BUILD_TESTS)
+    add_library(${PROJECT_NAME}_test_generator SHARED tests/generator.cpp)
+    target_link_libraries(${PROJECT_NAME}_test_generator
+        PRIVATE 
+            nadi::nadi
+            Boost::headers
+    )
+
+    add_library(${PROJECT_NAME}_test_printer SHARED tests/printer.cpp)
+    target_link_libraries(${PROJECT_NAME}_test_printer
+        PRIVATE 
+            nadi::nadi
+            Boost::headers
+    )
+
+endif()

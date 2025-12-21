@@ -2,32 +2,52 @@
 #include <string>
 #include "CLI/CLI.hpp"
 #include <nlohmann/json.hpp>
-#include "node.hpp"
+#include "nadi/node.hpp"
 #include <print>
 #include "context.hpp"
 #include <expected>
 #include "bootstrap.hpp"
+#include "thread.hpp"
+#if defined(_WIN32)
+#include <windows.h>
+#elif defined(__linux__) || defined(__APPLE__)
+#include <limits.h>
+#include <unistd.h>
+#include "threads.hpp"
+#endif
 
-
-context_t context;
-
-extern "C" {
-    void callback(nadi_message* msg){
-        context.callback(msg);
+std::filesystem::path getExecutableDir()
+{
+#ifdef _WIN32
+    char path[MAX_PATH];
+    GetModuleFileNameA(nullptr, path, MAX_PATH);
+    return std::filesystem::path(path).parent_path();
+#elif defined(__linux__)
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    if (count != -1) {
+        result[count] = '\0';
+        return std::filesystem::path(result).parent_path();
     }
-
-    void free_msg(nadi_message* msg){
-        context.free(msg);
+#elif defined(__APPLE__)
+    char path[PATH_MAX];
+    uint32_t size = sizeof(path);
+    if (_NSGetExecutablePath(path, &size) == 0) {
+        return std::filesystem::path(path).parent_path();
     }
+#endif
+    return std::filesystem::current_path();  // fallback
 }
+
 
 
 std::expected<nlohmann::json, std::string> read_json_from_cin() {
     std::stringstream buffer;
     std::string line;
-    while (std::getline(std::cin, line)) {
+    do {
+        std::getline(std::cin, line);
         buffer << line << '\n';
-    }
+    } while (line.length()>0);
 
     std::string input = buffer.str();
     if (input.empty()) {
@@ -43,37 +63,24 @@ std::expected<nlohmann::json, std::string> read_json_from_cin() {
 
 int main(int argc, char **argv) {
     CLI::App app{"Nadi Interconnect"};
-    std::string nodes_dir = "./nodes";
+    std::string nodes_dir = "";
     std::string bootstrap_file = "bootstrap.json";
-    app.add_option("--nodes", nodes_dir, "Path to node libraries directory")->default_val("./nodes");
-    app.add_option("--bootstrap", bootstrap_file, "Path to bootstrap JSON file")->default_val("bootstrap.json");
+    app.add_option("--nodes", nodes_dir, "Path to node libraries directory")->default_val((getExecutableDir()/"").string());
+    app.add_option("--bootstrap", bootstrap_file, "Path to bootstrap JSON file")->default_val((getExecutableDir()/"bootstrap.json").string());
     CLI11_PARSE(app, argc, argv);
 
-    context.load_nodes(nodes_dir);
-    std::print("nodes:{}",context.to_json().dump());
-    handle_bootstrap(bootstrap_file,context);
+    auto bootstrap_json = handle_bootstrap(bootstrap_file);
+    int num_threads = bootstrap_json["config"]["number_of_threads"];
+
+    nadi_threads_t threads(num_threads,nodes_dir);
+
+    auto messages = bootstrap_json["messages"];
+    for (const auto& msg_json : messages) {
+        handle_bootstrap_message(msg_json,threads);
+    }
 
     while(1){
-        auto json = read_json_from_cin();
-        if (!json) {
-            std::cerr << json.error() << std::endl;
-            continue;
-        }
-        if(json->contains("meta") && json->contains("data") && json->contains("channel")){
-            nadi_message* msg = new nadi_message;
-            msg->free = free_msg;
-            msg->channel = (*json)["channel"];
-            if((*json)["meta"].contains("format")){
-                std::string meta = (*json)["meta"].dump();
-                msg->meta = new char[meta.size()+1];
-                strcpy((char *)msg->meta,meta.c_str());
-                if((*json)["meta"]["format"] == "json"){
-                    std::string data = (*json)["data"].dump();
-                    msg->data = new char[data.size()+1];
-                    strcpy((char *)msg->data,data.c_str());
-                }
-            }
-        }
+
     }
     return 0;
 }

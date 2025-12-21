@@ -6,83 +6,54 @@
 #include <tuple>
 #include "find_nodes.hpp"
 #include "core_callbacks.hpp"
+#include "nadi/node.hpp"
+#include <expected>
 
 class node_management{
-    std::vector<std::tuple<nadi_library,std::vector<std::tuple<std::string,void*>>,std::filesystem::path>> nodes_;
+    std::map<std::string,std::tuple<nadi_library,std::filesystem::path>> abstract_nodes_;
+
+    // void erase_node(nadi_node_handle node){
+    //     for (auto it = instance_map_.begin(); it != instance_map_.end();) {
+    //         if (it->second == node) {
+    //             it = instance_map_.erase(it); // Erase and advance to next iterator
+    //         } else {
+    //             ++it; 
+    //         }
+    //         library_map_.erase(node);
+    //     }
+
+    // }
     public:
-    void load_nodes(std::string nodes_dir){
+    node_management(nadi_library ctx){
+
+    }
+
+    void load_abstract_nodes(std::string nodes_dir){
         auto node_paths_ = get_node_paths(nodes_dir);
         for(const auto &path: node_paths_){
-            nodes_.push_back({load_node(path.string()),{},path});
+            auto lib = load_node(path.string());
+            std::string name = path.filename().string();
+            abstract_nodes_[name] = std::tuple<nadi_library,std::filesystem::path>{lib,path};
         }
     }
-    void construct_node(const std::string& node_name, const std::string& instance, nadi_node_handle source_instance) {
-        nadi_library lib = load_node("./nodes/" + node_name + ".dll"); // Adjust extension
-        if (lib.dll) {
-            nadi_node_handle node_instance;
-            lib.init(&node_instance, callback);
-            instance_map_[instance] = node_instance;
-            library_map_[node_instance] = lib;
-            // TODO: Send confirmation response
+
+    nlohmann::json abstract_nodes_as_json(){
+        auto ret = nlohmann::json::array();
+        for(const auto& an: abstract_nodes_){
+            auto o = nlohmann::json::object();
+            std::size_t len = 1024*100;
+            auto buffer = std::make_unique<char[]>(len);
+            std::get<0>(an.second).descriptor(buffer.get(),&len);
+            auto desc = std::string(buffer.get(),len);
+            if (nlohmann::json::accept(desc)) {           // fast validation only
+                auto descobj = nlohmann::json::parse(desc); // safe now
+                o["description"] = std::move(descobj);
+            }
+
+            //TODO put data into the object
+            ret.push_back(o);
         }
-    }
-    void destruct_node(const std::string& instance, nadi_node_handle source_instance) {
-        auto it = instance_map_.find(instance);
-        if (it != instance_map_.end()) {
-            auto& node_instance = it->second;
-            library_map_[node_instance].deinit(node_instance);
-            instance_map_.erase(it);
-            library_map_.erase(node_instance);
-            // TODO: Send confirmation response
-        }
-    }
-    void send_loaded_list(nadi_node_handle source_instance) {
-        nlohmann::json response = {
-            {"meta", {{"format", "json"}}},
-            {"data", {
-                {"type", "nodes.loaded.list"},
-                {"nodes", to_json()["nodes"]}
-            }}
-        };
-        send_response(source_instance, response);
-    }
-    void send_instances_list(nadi_node_handle source_instance) {
-        nlohmann::json instances = nlohmann::json::array();
-        for (const auto& [instance, data] : instance_map_) {
-            instances.push_back({{"instance", instance}});
-        }
-        nlohmann::json response = {
-            {"meta", {{"format", "json"}}},
-            {"data", {
-                {"type", "nodes.instances.list"},
-                {"instances", instances}
-            }}
-        };
-        send_response(source_instance, response);
-    }
-    nlohmann::json to_json(){
-        nlohmann::json node_json;
-        node_json["meta"] = nlohmann::json::object();
-        node_json["meta"]["type"] = "description_of_known_nodes";
-        node_json["data"] = nlohmann::json::array();
-        for(const auto& [node,conns,path]: nodes_){
-            
-            auto description = std::string(node.descriptor());
-            auto obj = nlohmann::json::object();
-            obj["filename"] = path.filename().string();
-            obj["description"] = nlohmann::json::parse(description);
-            node_json["data"].push_back(obj);
-        }
-        return node_json;
-    }
-    nadi_library lib_from_instance(nadi_node_handle h){
-        return library_map_[h];
-    }
-    private:
-    std::map<std::string, nadi_node_handle> instance_map_;
-    std::map<nadi_node_handle,nadi_library> library_map_;
-    void send_response(nadi_node_handle instance, const nlohmann::json& response){
-        
+        return ret;
     }
 };
 

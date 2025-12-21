@@ -4,8 +4,7 @@
     "dependencies": [
         "pkgconf",
         "nlohmann-json",
-        "scope-guard",
-        "boost-lockfree"
+        "scope-guard"
     ]
 }
 

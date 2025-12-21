@@ -44,8 +44,6 @@ list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES CMAKE_PROJECT_TOP_LEVEL_INCLUDE
 
 set(CMAKE_TOOLCHAIN_FILE "${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frtti")
-
 project(${PROJECT_NAME} VERSION 0.0.1)
 
 if(MSVC)
@@ -54,8 +52,6 @@ if(MSVC)
         $<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
         $<$<CONFIG:Release>:/MT> #--|
     )
-    #add_compile_options(/permissive-)
-    #set(Boost_USE_STATIC_LIBS "On")
 endif()
 
 
@@ -84,8 +80,6 @@ find_or_fetch_package(
   cmake_git_version 0.1 GIT_REPOSITORY
   https://github.com/dominicpoeschko/cmake_git_version.git GIT_TAG master)
 
-find_package(Boost REQUIRED)
-
 
 target_link_libraries(${PROJECT_NAME} PRIVATE CLI11::CLI11)
 
@@ -110,14 +104,14 @@ if(NADI_INTERCONNECT_BUILD_TESTS)
     target_link_libraries(${PROJECT_NAME}_test_generator
         PRIVATE 
             nadi::nadi
-            Boost::headers
+            nlohmann_json::nlohmann_json
     )
 
     add_library(${PROJECT_NAME}_test_printer SHARED tests/printer.cpp)
     target_link_libraries(${PROJECT_NAME}_test_printer
         PRIVATE 
             nadi::nadi
-            Boost::headers
+            nlohmann_json::nlohmann_json
     )
 
 endif()

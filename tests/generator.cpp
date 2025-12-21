@@ -4,7 +4,6 @@
 #include <optional>
 #include <time.h>
 #include "scope_guard.hpp"
-#include <boost/lockfree/spsc_queue.hpp>
 
 
 void free_msg(nadi_message* message){

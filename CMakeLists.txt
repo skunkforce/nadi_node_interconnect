@@ -44,18 +44,18 @@ list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES CMAKE_PROJECT_TOP_LEVEL_INCLUDE
 
 set(CMAKE_TOOLCHAIN_FILE "${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frtti")
-
 project(${PROJECT_NAME} VERSION 0.0.1)
 
 if(MSVC)
     add_compile_options(
+        /EHsc  # Enable exceptions
+        /GR    # Enable RTTI
         $<$<CONFIG:>:/MD> #---------|
         $<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
         $<$<CONFIG:Release>:/MT> #--|
     )
-    #add_compile_options(/permissive-)
-    #set(Boost_USE_STATIC_LIBS "On")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frtti")
 endif()
 
 

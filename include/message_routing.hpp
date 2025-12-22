@@ -10,6 +10,7 @@
 #include <string>
 #include "nadi/nadi.h"
 #include "nadi/node.hpp"
+#include "nadi/unique_message.hpp"
 
 struct route_address{
     nadi_node_handle instance;
@@ -25,11 +26,27 @@ inline bool operator==(const route_address& lhs, const route_address& rhs){
 }
 
 struct routed_message: public route_address{
-    const nadi_message * message;
+    nadi_unique_message message;
+    routed_message(routed_message&&) noexcept = default;
+    routed_message& operator=(routed_message&&) noexcept = default;
+    routed_message(const routed_message&) = delete;
+    routed_message& operator=(const routed_message&) = delete;
+
+    explicit routed_message(nadi_unique_message&& msg) noexcept
+        : message(std::move(msg))
+    {}
+    template<typename... Args>
+    routed_message(nadi_unique_message&& msg, Args&&... args)
+        : route_address(std::forward<Args>(args)...),
+          message(std::move(msg))
+    {}
+    routed_message():message(){}
 };
 
 
+class message_routing;
 class nodes_routing{
+    friend class message_routing;
     struct routes {
         route_address source_;
         std::vector<route_address> destinations_;
@@ -100,6 +117,9 @@ public:
                 dest.push_back(target);
             }
         }
+        else{
+            connections_.emplace_back(route_address{source_instance,source_channel},std::vector<route_address>{route_address{target_instance,target_channel}});
+        }
         // TODO: Send confirmation response
     }
     void disconnect(const nadi_node_handle source_instance, unsigned int source_channel,
@@ -113,6 +133,7 @@ class shared_node_state {
     std::atomic<std::shared_ptr<nodes_routing>> table_;
 
     public:
+    shared_node_state():table_(std::make_shared<nodes_routing>()){}
     std::shared_ptr<const nodes_routing> get() const {
         return table_.load(std::memory_order_acquire);
     }

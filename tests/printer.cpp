@@ -4,6 +4,8 @@
 #include <optional>
 #include <time.h>
 #include "scope_guard.hpp"
+#include "nadi/unique_message.hpp"
+#include <iostream>
 
 
 void free_msg(nadi_message* message){
@@ -26,6 +28,10 @@ class interface_t{
         return i;
     }
     nadi_status send(nadi_message* msg, unsigned channel){
+        nadi_unique_message m(msg);
+        if(m.is_json_format()){
+            std::cout << (*m.to_json()).dump() << "\n";
+        }
         return NADI_OK;
     }
     nadi_status handle_events(){

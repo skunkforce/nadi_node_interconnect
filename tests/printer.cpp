@@ -3,7 +3,6 @@
 #include <nadi/message_helpers.hpp>
 #include <optional>
 #include <time.h>
-#include "scope_guard.hpp"
 #include "nadi/unique_message.hpp"
 #include <iostream>
 

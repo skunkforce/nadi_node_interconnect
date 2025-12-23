@@ -2,7 +2,6 @@
 #define CONTEXT_HPP
 #include "message_routing.hpp"
 #include "node_management.hpp"
-#include "scope_guard.hpp"
 #include <nadi\message_validation.hpp>
 #include <nadi\message_helpers.hpp>
 #include <deque>

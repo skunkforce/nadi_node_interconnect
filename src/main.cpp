@@ -15,6 +15,16 @@
 #include <unistd.h>
 #include "threads.hpp"
 #endif
+// TODO REfactor config startup kram in eine parse config oder so
+// Ziel: in der main parse-config aufrufen. rückgabe ist das config struct (Main enthält kein config parsing merh)
+// Magic strings sind dann auch Teil der Konfig Routine
+
+// Nodes .dll directory: god script oder cli paramter?
+// Generell: welche entscheidungen kommen wo rein? god script ist auf jeden Fall ein cli parameter (wo dieses liegt)
+
+// Abhängigkeiten zwischen verschiedenen Konfigurationen
+// Bsp. 8 Threads angegeben, keine möglichkeit einer node thread 9 zuzordnen
+// an einer Stelle angeben: GOd script, da nicht alles CLI parameter sein kann
 
 std::filesystem::path getExecutableDir()
 {
@@ -63,18 +73,20 @@ std::expected<nlohmann::json, std::string> read_json_from_cin() {
 
 int main(int argc, char **argv) {
     CLI::App app{"Nadi Interconnect"};
+    // Default Werte wenn nichts angegeben ist.
     std::string nodes_dir = "";
-    std::string bootstrap_file = "bootstrap.json";
+    std::string bootstrap_file = "bootstrap.json"; // Godscript (bootstrap weil andere das auch so nennen, etwa vcpkg)
     app.add_option("--nodes", nodes_dir, "Path to node libraries directory")->default_val((getExecutableDir()/"").string());
     app.add_option("--bootstrap", bootstrap_file, "Path to bootstrap JSON file")->default_val((getExecutableDir()/"bootstrap.json").string());
     CLI11_PARSE(app, argc, argv);
 
     auto bootstrap_json = handle_bootstrap(bootstrap_file);
-    int num_threads = bootstrap_json["config"]["number_of_threads"];
+    int num_threads = bootstrap_json["config"]["number_of_threads"]; // dieser Wert muss gesetzt sein! -> bessere Fehlermeldungn, defaults etc.
 
     nadi_threads_t threads(num_threads,nodes_dir);
 
-    auto messages = bootstrap_json["messages"];
+    auto messages = bootstrap_json["messages"]; // Godscript hat zwei teile
+    // 1. config 2. messages -> konfigurationsnachrichten, die an nodes gehen. INitiale nachrichten, nciht die nachrichtenformate (einmalig)
     for (const auto& msg_json : messages) {
         handle_bootstrap_message(msg_json,threads);
     }

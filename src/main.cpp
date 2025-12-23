@@ -50,40 +50,21 @@ std::filesystem::path getExecutableDir()
 }
 
 
-
-std::expected<nlohmann::json, std::string> read_json_from_cin() {
-    std::stringstream buffer;
-    std::string line;
-    do {
-        std::getline(std::cin, line);
-        buffer << line << '\n';
-    } while (line.length()>0);
-
-    std::string input = buffer.str();
-    if (input.empty()) {
-        return std::unexpected("Empty input");
-    }
-
-    try {
-        return nlohmann::json::parse(input);
-    } catch (const nlohmann::json::parse_error& e) {
-        return std::unexpected(std::format("Parse error: {}", e.what()));
-    }
-}
-
 int main(int argc, char **argv) {
     CLI::App app{"Nadi Interconnect"};
-    // Default Werte wenn nichts angegeben ist.
-    std::string nodes_dir = "";
-    std::string bootstrap_file = "bootstrap.json"; // Godscript (bootstrap weil andere das auch so nennen, etwa vcpkg)
-    app.add_option("--nodes", nodes_dir, "Path to node libraries directory")->default_val((getExecutableDir()/"").string());
+    std::string bootstrap_file = "bootstrap.json";// Godscript (bootstrap weil andere das auch so nennen, etwa vcpkg)
     app.add_option("--bootstrap", bootstrap_file, "Path to bootstrap JSON file")->default_val((getExecutableDir()/"bootstrap.json").string());
     CLI11_PARSE(app, argc, argv);
 
-    auto bootstrap_json = handle_bootstrap(bootstrap_file);
-    int num_threads = bootstrap_json["config"]["number_of_threads"]; // dieser Wert muss gesetzt sein! -> bessere Fehlermeldungn, defaults etc.
+    auto bootstrap_json = parse_bootstrap(bootstrap_file);
+    //TODO validate bootstrap
+    int num_threads = bootstrap_json["config"]["number_of_threads"];// dieser Wert muss gesetzt sein! -> bessere Fehlermeldungn, defaults etc.
+    std::string nodes_dir = "";
+    if(bootstrap_json["config"].contains("nodes_dir")){ 
+        nodes_dir = bootstrap_json["config"]["nodes_dir"];
+    }
 
-    nadi_threads_t threads(num_threads,nodes_dir);
+    nadi_threads_t threads(num_threads,getExecutableDir().string()+"/"+nodes_dir);
 
     auto messages = bootstrap_json["messages"]; // Godscript hat zwei teile
     // 1. config 2. messages -> konfigurationsnachrichten, die an nodes gehen. INitiale nachrichten, nciht die nachrichtenformate (einmalig)
@@ -91,8 +72,6 @@ int main(int argc, char **argv) {
         handle_bootstrap_message(msg_json,threads);
     }
 
-    while(1){
-
-    }
+    while(1){}
     return 0;
 }

@@ -6,12 +6,13 @@
 #include <time.h>
 #include <chrono>
 
-
-void free_msg(nadi_message* message){
-    delete[] message->meta;
-    auto pd = (char*)message->data;
-    delete[] pd;
-    delete message;
+extern "C"{
+    void free_msg(nadi_message* message){
+        delete[] message->meta;
+        auto pd = (char*)message->data;
+        delete[] pd;
+        delete message;
+    }
 }
 
 class interface_t{
@@ -21,7 +22,7 @@ class interface_t{
     nadi_node_handle node_id_;
     decltype(std::chrono::steady_clock::now()) last_sent_;
 
-    interface_t(nadi_receive_callback cb, void* cb_ctx):out_{cb},receive_ctx_{cb_ctx},last_sent_{std::chrono::steady_clock::now()}{}
+    interface_t(nadi_receive_callback cb, void* cb_ctx):out_{cb},receive_ctx_{cb_ctx},last_sent_(std::chrono::steady_clock::now()){}
     public:
     static nadi_node_handle make(nadi_receive_callback cb,void* cb_ctx){
         auto i = new interface_t{cb,cb_ctx};

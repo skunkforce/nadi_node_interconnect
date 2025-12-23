@@ -1,10 +1,8 @@
-#include <format>
 #include <string>
+#include "context.hpp"
 #include "CLI/CLI.hpp"
 #include <nlohmann/json.hpp>
 #include "nadi/node.hpp"
-#include <print>
-#include "context.hpp"
 #include <expected>
 #include "bootstrap.hpp"
 #include "thread.hpp"

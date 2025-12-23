@@ -1,8 +1,0 @@
-{
-    "name": "nadi-interconnect",
-    "version": "1.0",
-    "dependencies": [
-        "nlohmann-json"
-    ]
-}
-

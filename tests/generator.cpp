@@ -1,6 +1,7 @@
 #include <nadi/nadi.h>
 #include <nadi/message_validation.hpp>
 #include <nadi/message_helpers.hpp>
+#include <nadi/unique_message.hpp>
 #include <optional>
 #include <time.h>
 #include <chrono>
@@ -27,7 +28,7 @@ class interface_t{
         i->node_id_ = i;
         return i;
     }
-    nadi_status send(nadi_message* msg, unsigned channel){
+    nadi_status send(nadi_unique_message msg, unsigned channel){
         return NADI_OK;
     }
     nadi_status handle_events(){
@@ -61,7 +62,7 @@ extern "C" {
     }
 
     DLL_EXPORT nadi_status nadi_send(nadi_message* message, nadi_node_handle node, unsigned int target_channel){
-        static_cast<interface_t*>(node)->send(message, target_channel);
+        static_cast<interface_t*>(node)->send(nadi_unique_message(message), target_channel);
         return NADI_OK;
     }
 

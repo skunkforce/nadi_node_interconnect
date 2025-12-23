@@ -56,9 +56,6 @@ if(MSVC)
     )
 endif()
 
-include(cmake_helpers/BuildOptions.cmake)
-include(cmake_helpers/FindOrFetch.cmake)
-
 add_executable(${PROJECT_NAME}
     src/main.cpp src/thread.cpp src/threads.cpp
 )
@@ -69,16 +66,13 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:include>
 )
 
+add_subdirectory(node-agnostic-datastream-interface)
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         nlohmann_json::nlohmann_json
         CLI11::CLI11
+        nadi::nadi
 )
-
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
-
-add_subdirectory(node-agnostic-datastream-interface)
-target_link_libraries(${PROJECT_NAME} PRIVATE nadi::nadi)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})

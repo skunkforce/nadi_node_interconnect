@@ -10,23 +10,30 @@ set(CMAKE_CXX_EXTENSIONS OFF) # Disable compiler-specific extensions
 include(FetchContent)
 
 
-set(CLI11_BUILD_TESTS OFF)
-set(CLI11_BUILD_EXAMPLES OFF)
-# CLI11
-FetchContent_Declare(
-    cli11_proj
-    QUIET
-    GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
-    GIT_TAG v2.6.1
-)
+if(NOT TARGET CLI11::CLI11)
+    set(CLI11_BUILD_TESTS OFF)
+    set(CLI11_BUILD_EXAMPLES OFF)
+    # CLI11
+    FetchContent_Declare(
+        cli11_proj
+        QUIET
+        GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+        GIT_TAG v2.6.1
+    )
 
-FetchContent_MakeAvailable(cli11_proj)
+    FetchContent_MakeAvailable(cli11_proj)
+endif()
 
+if(NOT TARGET nlohmann_json::nlohmann_json)
+    FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+    set(JSON_BuildTests OFF CACHE INTERNAL "")
+    FetchContent_MakeAvailable(json)
+endif()
 
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
-FetchContent_MakeAvailable(json)
-# Disable json tests (not needed)
-set(JSON_BuildTests OFF CACHE INTERNAL "")
+if(NOT TARGET nadi::nadi)
+    add_subdirectory(node-agnostic-datastream-interface)
+endif()
+
 
 # Get latest git tag for version
 execute_process(
@@ -66,7 +73,6 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:include>
 )
 
-add_subdirectory(node-agnostic-datastream-interface)
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         nlohmann_json::nlohmann_json

@@ -11,6 +11,7 @@
 #include "nadi/nadi.h"
 #include "nadi/node.hpp"
 #include "nadi/unique_message.hpp"
+#include <utility>
 
 struct route_address{
     nadi_node_handle instance;
@@ -130,18 +131,21 @@ public:
 };
 
 class shared_node_state {
-    std::atomic<std::shared_ptr<nodes_routing>> table_;
+    mutable std::shared_ptr<nodes_routing> table_;
 
     public:
     shared_node_state():table_(std::make_shared<nodes_routing>()){}
     std::shared_ptr<const nodes_routing> get() const {
-        return table_.load(std::memory_order_acquire);
+        return std::atomic_load_explicit(&table_, std::memory_order_acquire);
     }
-    void modify(auto f){
-        std::shared_ptr<nodes_routing> local = table_.load(std::memory_order_acquire);
-        auto new_routes = std::make_shared<message_routing>(*local);
-        f(*new_routes);
-        table_.store(new_routes, std::memory_order_release);
+    template <typename F>
+    void modify(F&& f) {
+        std::shared_ptr<nodes_routing> current =
+            std::atomic_load_explicit(&table_, std::memory_order_acquire);
+        auto new_routes = std::make_shared<nodes_routing>(*current);
+        std::forward<F>(f)(static_cast<message_routing&>(*new_routes));
+        std::atomic_store_explicit(&table_, std::move(new_routes),
+                                  std::memory_order_release);
     }
 };
 

@@ -7,7 +7,7 @@
 #include <deque>
 #include <vector>
 #include "thread.hpp"
-#include "nadi\unique_message.hpp"
+#include <nadicpp\message.hpp>
 extern "C"{
     void free_msg(nadi_message* msg);
 };
@@ -63,8 +63,8 @@ class context_t {
     nlohmann::json abstract_nodes_as_json(){
         return nodes_.abstract_nodes_as_json();
     }
-    friend void bootstrap_dispatch_to_target(nadi_unique_message msg, const nlohmann::json& target, context_t& ctx);
-    void handle_context_messages(nadi_unique_message msg, unsigned channel){
+    friend void bootstrap_dispatch_to_target(nadicpp::message msg, const nlohmann::json& target, context_t& ctx);
+    void handle_context_messages(nadicpp::message msg, unsigned channel){
         if(msg.is_json_format()){
             if(auto json_msg = msg.to_json()){
                 auto data = (*json_msg)["data"];

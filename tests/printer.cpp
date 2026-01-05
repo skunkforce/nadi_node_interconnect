@@ -3,7 +3,7 @@
 #include <nadi/message_helpers.hpp>
 #include <optional>
 #include <time.h>
-#include "nadi/unique_message.hpp"
+#include <nadicpp/message.hpp>
 #include <iostream>
 
 
@@ -27,7 +27,7 @@ class interface_t{
         return i;
     }
     nadi_status send(nadi_message* msg, unsigned channel){
-        nadi_unique_message m(msg);
+        nadicpp::message m(msg);
         if(m.is_json_format()){
             std::cout << (*m.to_json()).dump() << "\n";
         }

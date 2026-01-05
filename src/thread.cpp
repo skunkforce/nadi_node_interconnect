@@ -12,7 +12,7 @@ struct nadi_thread_impl{
     std::vector<std::pair<nadi_node_handle,nadi_library>> local_nodes_;
     std::jthread thread_;
 
-    void handle_context_messages(nadi_unique_message msg, unsigned channel);
+    void handle_context_messages(nadicpp::message msg, unsigned channel);
     void construct_node(const std::string& node_path, const std::string& instance);
 
     void handle_rpc(routed_message m){
@@ -34,7 +34,7 @@ struct nadi_thread_impl{
     }
 };
 
-    void nadi_thread_t::on_callback(nadi_unique_message m){
+    void nadi_thread_t::on_callback(nadicpp::message m){
         auto r = impl_->routes_.get();
         auto ds = r->destinations_from(to_route_address(*m.get()));
         for(auto&d:ds){
@@ -79,7 +79,7 @@ void callback(nadi_message* msg, void* thread_ctx);
             local_nodes_.emplace_back(node_instance,lib);
         }
     }
-    void nadi_thread_impl::handle_context_messages(nadi_unique_message msg, unsigned channel){
+    void nadi_thread_impl::handle_context_messages(nadicpp::message msg, unsigned channel){
         if(msg.is_json_format()){
             if(auto json_msg = msg.to_json()){
                 auto data = (*json_msg)["data"];
@@ -138,7 +138,7 @@ void callback(nadi_message* msg, void* thread_ctx);
 
 extern "C" {
     void callback(nadi_message* msg, void* thread_ctx){
-        static_cast<nadi_thread_t*>(thread_ctx)->on_callback(nadi_unique_message(msg));
+        static_cast<nadi_thread_t*>(thread_ctx)->on_callback(nadicpp::message(msg));
     }
 
     void free_msg(nadi_message* msg){

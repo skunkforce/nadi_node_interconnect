@@ -30,8 +30,8 @@ if(NOT TARGET nlohmann_json::nlohmann_json)
     FetchContent_MakeAvailable(json)
 endif()
 
-if(NOT TARGET nadi::nadi)
-    add_subdirectory(node-agnostic-datastream-interface)
+if(NOT TARGET nadicpp::nadicpp)
+    add_subdirectory(nadicpp)
 endif()
 
 
@@ -78,6 +78,7 @@ target_link_libraries(${PROJECT_NAME}
         nlohmann_json::nlohmann_json
         CLI11::CLI11
         nadi::nadi
+        nadicpp::nadicpp
 )
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -92,6 +93,7 @@ if(NADI_INTERCONNECT_BUILD_TESTS)
     target_link_libraries(${PROJECT_NAME}_test_generator
         PRIVATE
             nadi::nadi
+            nadicpp::nadicpp
             nlohmann_json::nlohmann_json
     )
 
@@ -99,6 +101,7 @@ if(NADI_INTERCONNECT_BUILD_TESTS)
     target_link_libraries(${PROJECT_NAME}_test_printer
         PRIVATE
             nadi::nadi
+            nadicpp::nadicpp
             nlohmann_json::nlohmann_json
     )
 endif()

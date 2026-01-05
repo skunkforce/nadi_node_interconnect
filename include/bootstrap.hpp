@@ -5,10 +5,10 @@
 #include <nadi/nadi.h>
 #include "core_callbacks.hpp"
 #include "threads.hpp"
-#include "nadi/unique_message.hpp"
+#include <nadicpp/message.hpp>
 #include <vector>
 
-void bootstrap_dispatch_to_target(nadi_unique_message msg, const nlohmann::json& target, nadi_threads_t& threads)
+void bootstrap_dispatch_to_target(nadicpp::message msg, const nlohmann::json& target, nadi_threads_t& threads)
 {
     if(target.size() == 2){
         std::string target_name = target[0];
@@ -31,7 +31,7 @@ void bootstrap_dispatch_to_target(nadi_unique_message msg, const nlohmann::json&
 void handle_bootstrap_message(const nlohmann::json& msgs_json, nadi_threads_t& threads){
     for(auto& msg_json:msgs_json){
         if(msg_json.contains("meta") && msg_json.contains("data")){
-            nadi_unique_message msg(new nadi_message);
+            nadicpp::message msg(new nadi_message);
             msg.get()->free = free_msg;
             if(msg_json.contains("channel")){
                 msg.get()->channel = msg_json["channel"].get<unsigned int>();

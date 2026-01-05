@@ -10,7 +10,7 @@
 #include <string>
 #include "nadi/nadi.h"
 #include "nadi/node.hpp"
-#include "nadi/unique_message.hpp"
+#include <nadicpp/message.hpp>
 #include <utility>
 
 struct route_address{
@@ -27,17 +27,17 @@ inline bool operator==(const route_address& lhs, const route_address& rhs){
 }
 
 struct routed_message: public route_address{
-    nadi_unique_message message;
+    nadicpp::message message;
     routed_message(routed_message&&) noexcept = default;
     routed_message& operator=(routed_message&&) noexcept = default;
     routed_message(const routed_message&) = delete;
     routed_message& operator=(const routed_message&) = delete;
 
-    explicit routed_message(nadi_unique_message&& msg) noexcept
+    explicit routed_message(nadicpp::message&& msg) noexcept
         : message(std::move(msg))
     {}
     template<typename... Args>
-    routed_message(nadi_unique_message&& msg, Args&&... args)
+    routed_message(nadicpp::message&& msg, Args&&... args)
         : route_address(std::forward<Args>(args)...),
           message(std::move(msg))
     {}

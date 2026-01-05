@@ -34,7 +34,7 @@ class nadi_threads_t{
             new (msg->data) std::function<void()>(f);
             msg->free = free_function_msg;
             msg->user = nullptr;
-            routed_message m{nadi_unique_message(msg)};
+            routed_message m{nadicpp::message(msg)};
             m.channel = 0;
             m.instance = (void*)1;
 

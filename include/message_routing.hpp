@@ -13,20 +13,8 @@
 #include <nadicpp/message.hpp>
 #include <utility>
 
-struct route_address{
-    nadi_node_handle instance;
-    unsigned int channel;
-};
 
-inline route_address to_route_address(const nadi_message& m){
-    return {m.node,m.channel};
-}
-
-inline bool operator==(const route_address& lhs, const route_address& rhs){
-    return lhs.instance == rhs.instance && lhs.channel == rhs.channel;
-}
-
-struct routed_message: public route_address{
+struct routed_message: public nadicpp::address{
     nadicpp::message message;
     routed_message(routed_message&&) noexcept = default;
     routed_message& operator=(routed_message&&) noexcept = default;
@@ -38,7 +26,7 @@ struct routed_message: public route_address{
     {}
     template<typename... Args>
     routed_message(nadicpp::message&& msg, Args&&... args)
-        : route_address(std::forward<Args>(args)...),
+        : nadicpp::address(std::forward<Args>(args)...),
           message(std::move(msg))
     {}
     routed_message():message(){}
@@ -49,17 +37,17 @@ class message_routing;
 class nodes_routing{
     friend class message_routing;
     struct routes {
-        route_address source_;
-        std::vector<route_address> destinations_;
+        nadicpp::address source_;
+        std::vector<nadicpp::address> destinations_;
     };
     std::vector<routes> connections_;
     std::vector<std::pair<nadi_node_handle,unsigned>> thread_indexes_;
     std::map<std::string,nadi_node_handle> instance_map_;
     std::map<nadi_node_handle,nadicpp::library> library_map_;
 
-    const std::vector<route_address> empty_;
+    const std::vector<nadicpp::address> empty_;
     public:
-    std::optional<std::vector<routes>::iterator> it_from_route_address(route_address a){
+    std::optional<std::vector<routes>::iterator> it_from_route_address(nadicpp::address a){
         auto it = std::ranges::find_if(connections_,[&](const routes& e){return e.source_ == a;});
         if(it != connections_.end()){
             return it;
@@ -67,7 +55,7 @@ class nodes_routing{
         return {};
     }
 
-    std::optional<std::vector<routes>::const_iterator> it_from_route_address(route_address a) const{
+    std::optional<std::vector<routes>::const_iterator> it_from_route_address(nadicpp::address a) const{
         auto it = std::ranges::find_if(connections_,[&](const routes& e){return e.source_ == a;});
         if(it != connections_.end()){
             return it;
@@ -75,7 +63,7 @@ class nodes_routing{
         return {};
     }
     
-    const std::vector<route_address>& destinations_from(route_address a ) const {
+    const std::vector<nadicpp::address>& destinations_from(nadicpp::address a ) const {
         if(auto it = it_from_route_address(a)){
             return (*it)->destinations_;
         }
@@ -88,8 +76,8 @@ class nodes_routing{
         }
         return it->second;
     }
-    unsigned get_thread_index(const route_address& r) const{
-        return get_thread_index(r.instance);
+    unsigned get_thread_index(const nadicpp::address& r) const{
+        return get_thread_index(r.node);
     }
     nadi_node_handle instance_name_to_handle(const std::string & instance) const {
         return instance_map_.at(instance);
@@ -111,15 +99,16 @@ public:
     void connect(const nadi_node_handle source_instance, unsigned int source_channel,
                  const nadi_node_handle target_instance, unsigned int target_channel) {
 
-        if(auto it = it_from_route_address(route_address{source_instance,source_channel})){
+        if(auto it = it_from_route_address(nadicpp::address{source_instance,source_channel})){
             auto& dest = (*it)->destinations_;
-            route_address target{target_instance, target_channel};
+            nadicpp::address target{target_instance, target_channel};
             if(!std::ranges::contains(dest,target)){  //only insert once
                 dest.push_back(target);
             }
         }
         else{
-            connections_.emplace_back(route_address{source_instance,source_channel},std::vector<route_address>{route_address{target_instance,target_channel}});
+            connections_.emplace_back(nadicpp::address{source_instance,source_channel},
+                std::vector<nadicpp::address>{nadicpp::address{target_instance,target_channel}});
         }
         // TODO: Send confirmation response
     }

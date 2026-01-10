@@ -21,7 +21,7 @@ void bootstrap_dispatch_to_target(nadicpp::message msg, const nlohmann::json& ta
             size_t pos = 0;
             channel = std::stoul(hex_str, &pos, 16);
         }
-        threads.push_bootstrap_message(target_name,{std::move(msg),route_address{0,channel}});
+        threads.push_bootstrap_message(target_name,{std::move(msg),nadicpp::address{0,channel}});
     }
     else {
         //TODO error
@@ -67,9 +67,24 @@ nlohmann::json parse_bootstrap(const std::string& bootstrap_file){
         nlohmann::json bootstrap_json;
         file >> bootstrap_json;
         file.close();
+
+        if(!bootstrap_json.contains("config") || !bootstrap_json["config"].contains("number_of_threads")){
+            bootstrap_json["config"]["number_of_threads"] = 1;
+        }
+        if(!bootstrap_json["config"].contains("nodes_path")){
+            bootstrap_json["config"]["nodes_path"] = std::format("{}/nodes",getExecutableDir().string());
+        }
+        if(!bootstrap_json.contains("messages")){
+            bootstrap_json["messages"] = {};
+        }
         return bootstrap_json;
     }
-    return {};
+    return {
+        {"config",{
+            {"number_of_threads",1},
+            {"nodes_path",""}}},
+        {"messages",{}}
+    };
 }
 
 

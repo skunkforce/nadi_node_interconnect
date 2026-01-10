@@ -19,7 +19,7 @@ class nadi_threads_t{
         if(instance_name != "context"){
             auto r = shared_routing.get();
             auto h = r->instance_name_to_handle(instance_name);
-            msg.instance = h;
+            msg.node = h;
             idx = r->get_thread_index(h);       
         }
 
@@ -36,7 +36,7 @@ class nadi_threads_t{
             msg->user = nullptr;
             routed_message m{nadicpp::message(msg)};
             m.channel = 0;
-            m.instance = (void*)1;
+            m.node = (void*)1;
 
             t.push_message_non_local(std::move(m));
         }

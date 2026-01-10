@@ -2,7 +2,7 @@
 #include "context.hpp"
 #include "CLI/CLI.hpp"
 #include <nlohmann/json.hpp>
-#include "nadi/node.hpp"
+#include "nadicpp/node.hpp"
 #include <expected>
 #include "bootstrap.hpp"
 #include "thread.hpp"

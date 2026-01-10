@@ -9,11 +9,11 @@ struct nadi_thread_impl{
     std::vector<nadi_thread_t>& threads_;
     std::string nodes_dir_;
     const unsigned index_;
-    std::vector<std::pair<nadi_node_handle,nadi_library>> local_nodes_;
+    std::vector<std::pair<nadi_node_handle,nadicpp::library>> local_nodes_;
     std::jthread thread_;
 
     void handle_context_messages(nadicpp::message msg, unsigned channel);
-    void construct_node(const std::string& node_path, const std::string& instance);
+    void construct_node(const std::string& node_path, const std::string& instance, const std::string& init);
 
     void handle_rpc(routed_message m){
         //TODO more validation
@@ -65,13 +65,13 @@ struct nadi_thread_impl{
         impl_->foreign_queue_.push(std::move(rm));
     }
 
-void callback(nadi_message* msg, void* thread_ctx);
+    void callback(nadi_message* msg, void* thread_ctx);
 
-    void nadi_thread_impl::construct_node(const std::string& node_path, const std::string& instance_name){        
-        nadi_library lib = load_node(node_path); // Adjust extension
+    void nadi_thread_impl::construct_node(const std::string& node_path, const std::string& instance_name, const std::string& init){        
+        nadicpp::library lib = nadicpp::load_node(node_path); // Adjust extension
         if (lib.dll) {
             nadi_node_handle node_instance;
-            lib.init(&node_instance, callback, &threads_[index_]);
+            lib.init(&node_instance, callback, &threads_[index_],const_cast<char*>(init.c_str()));
 
             routes_.modify([&](auto& routes){
                 routes.add_node(instance_name,node_instance,lib,index_);
@@ -92,14 +92,18 @@ void callback(nadi_message* msg, void* thread_ctx);
                         std::string node_name = data["abstract_name"].get<std::string>();
                         std::string instance_name = data["instance_name"].get<std::string>();
                         std::string node_path = nodes_dir_ + node_name + ".dll";
-                        construct_node(node_path,instance_name);
+                        std::string init;
+                        if(data.contains("init")){
+                            init = data["init"].dump();
+                        }
+                        construct_node(node_path,instance_name,init);
                     }
                     else if(nadi::validation::validate_context_node_destroy(data)){
                         
                     }
                     else if(nadi::validation::validate_context_abstract_nodes(data)){
                         auto list = nlohmann::json::array(); //TODO
-                        auto msg = nadi::helpers::heap_allocate_abstract_nodes_list(list,&free_msg,id);                        
+                        auto msg = nadicpp::helpers::heap_allocate_abstract_nodes_list(list,&free_msg,id);                        
                     }
                     else if(nadi::validation::validate_context_nodes(data)){
                         

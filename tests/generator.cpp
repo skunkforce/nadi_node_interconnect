@@ -1,6 +1,6 @@
 #include <nadi/nadi.h>
-#include <nadi/message_validation.hpp>
-#include <nadi/message_helpers.hpp>
+#include <nadicpp/message_validation.hpp>
+#include <nadicpp/message_helpers.hpp>
 #include <nadicpp/message.hpp>
 #include <optional>
 #include <time.h>
@@ -36,7 +36,7 @@ class interface_t{
         using namespace std::chrono_literals;
         if (std::chrono::steady_clock::now() > last_sent_ + 5s) {
             last_sent_ += 1s;
-            auto m = nadi::helpers::heap_allocate_json_message(node_id_,1,nlohmann::json::parse(
+            auto m = nadicpp::helpers::heap_allocate_json_message(node_id_,1,nlohmann::json::parse(
 R"(
 {
     "message": "hello world"

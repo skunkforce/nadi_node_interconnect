@@ -9,7 +9,7 @@
 #include <map>
 #include <string>
 #include "nadi/nadi.h"
-#include "nadi/node.hpp"
+#include "nadicpp/node.hpp"
 #include <nadicpp/message.hpp>
 #include <utility>
 
@@ -55,7 +55,7 @@ class nodes_routing{
     std::vector<routes> connections_;
     std::vector<std::pair<nadi_node_handle,unsigned>> thread_indexes_;
     std::map<std::string,nadi_node_handle> instance_map_;
-    std::map<nadi_node_handle,nadi_library> library_map_;
+    std::map<nadi_node_handle,nadicpp::library> library_map_;
 
     const std::vector<route_address> empty_;
     public:
@@ -94,10 +94,10 @@ class nodes_routing{
     nadi_node_handle instance_name_to_handle(const std::string & instance) const {
         return instance_map_.at(instance);
     }
-    nadi_library library_instance(nadi_node_handle h) const {
+    nadicpp::library library_instance(nadi_node_handle h) const {
         return library_map_.at(h);
     }
-    void add_node(const std::string& instance, const nadi_node_handle h, nadi_library lib, unsigned index){
+    void add_node(const std::string& instance, const nadi_node_handle h, nadicpp::library lib, unsigned index){
         thread_indexes_.push_back({h,index}); //TODO make this a sorted list so it goes faster
         instance_map_[instance] = h;
         library_map_[h] = lib;

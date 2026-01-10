@@ -1,6 +1,5 @@
 #include <nadi/nadi.h>
-#include <nadi/message_validation.hpp>
-#include <nadi/message_helpers.hpp>
+#include <nadicpp/message_validation.hpp>
 #include <optional>
 #include <time.h>
 #include <nadicpp/message.hpp>

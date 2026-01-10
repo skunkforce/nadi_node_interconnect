@@ -2,8 +2,8 @@
 #define CONTEXT_HPP
 #include "message_routing.hpp"
 #include "node_management.hpp"
-#include <nadi\message_validation.hpp>
-#include <nadi\message_helpers.hpp>
+#include <nadicpp\message_validation.hpp>
+#include <nadicpp\message_helpers.hpp>
 #include <deque>
 #include <vector>
 #include "thread.hpp"
@@ -17,49 +17,10 @@ class context_t {
     shared_node_state& routes_;
     std::vector<nadi_thread_t>& threads_;
     public:
-    context_t(shared_node_state& routes, std::vector<nadi_thread_t>& threads):nodes_(nadi_library{}),routes_(routes),threads_(threads){}
+    context_t(shared_node_state& routes, std::vector<nadi_thread_t>& threads):nodes_(nadicpp::library{}),routes_(routes),threads_(threads){}
     void load_abstract_nodes(std::string path){
         nodes_.load_abstract_nodes(path);
     }
-    // void handle_message(const nadi_message* msg, unsigned channel){
-    //     try{
-    //         auto routing = shared_routing_.get();
-    //         const nadi_message* msg = incoming_messages_.front();
-    //         incoming_messages_.pop_front();
-    //         auto dest = routing->destinations_from({msg->node,msg->channel});
-    //         if(dest.size()>0){
-    //             for(const auto d:dest){
-    //                 if(d.instance == 0){
-    //                     handle_context_messages(msg,d.channel);
-    //                 }
-    //                 else{
-    //                     //TODO dispatch to node
-    //                 }
-    //             }
-    //         }
-    //         else {
-
-    //         }
-    //         if(msg->channel != 0xF000){
-    //             //not messages on the graph component
-    //             const auto& destinations = routing->destinations_from({msg->node, msg->channel});
-    //             if(destinations.size() == 1){ 
-    //                 //if there is only one then just forward
-    //                 auto[instance,channel] = destinations[0];
-    //                 nodes_.lib_from_instance(instance).send(const_cast<nadi_message *>(msg),instance,channel);
-    //             }
-    //             else {
-    //                 //TODO implement multi dispatch
-    //             }
-    //         }
-    //         else{
-
-    //         }
-    //     }
-    //     catch (...){
-    //         //TODO logg errors, maybe handle some stuff
-    //     }
-    // }
     nlohmann::json abstract_nodes_as_json(){
         return nodes_.abstract_nodes_as_json();
     }
@@ -84,7 +45,7 @@ class context_t {
                             routes_.modify([&](auto& routes){
                                 routes.connect(sid,source_channel,did,destination_channel);
                             });
-                            auto msg = nadi::helpers::heap_allocate_connect_confirm(&free_msg,id);
+                            auto msg = nadicpp::helpers::heap_allocate_connect_confirm(&free_msg,id);
                         }
                     }
                     else if(nadi::validation::validate_context_disconnect(data)){

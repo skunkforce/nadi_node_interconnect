@@ -29,7 +29,7 @@ class interface_t{
         i->node_id_ = i;
         return i;
     }
-    nadi_status send(nadicpp::message msg, unsigned channel){
+    nadi_status send(nadicpp::message msg, uint64_t channel){
         return NADI_OK;
     }
     nadi_status handle_events(){
@@ -62,7 +62,7 @@ extern "C" {
         return NADI_OK;
     }
 
-    DLL_EXPORT nadi_status nadi_send(nadi_message* message, nadi_node_handle node, unsigned int target_channel){
+    DLL_EXPORT nadi_status nadi_send(nadi_message* message, nadi_node_handle node, uint64_t target_channel){
         static_cast<interface_t*>(node)->send(nadicpp::message(message), target_channel);
         return NADI_OK;
     }

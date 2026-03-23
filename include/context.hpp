@@ -2,12 +2,12 @@
 #define CONTEXT_HPP
 #include "message_routing.hpp"
 #include "node_management.hpp"
-#include <nadicpp\message_validation.hpp>
-#include <nadicpp\message_helpers.hpp>
+#include <nadicpp/message_validation.hpp>
+#include <nadicpp/message_helpers.hpp>
 #include <deque>
 #include <vector>
 #include "thread.hpp"
-#include <nadicpp\message.hpp>
+#include <nadicpp/message.hpp>
 extern "C"{
     void free_msg(nadi_message* msg);
 };

@@ -51,7 +51,7 @@ extern "C" {
         return NADI_OK;
     }
 
-    DLL_EXPORT nadi_status nadi_send(nadi_message* message, nadi_node_handle node, unsigned int target_channel){
+    DLL_EXPORT nadi_status nadi_send(nadi_message* message, nadi_node_handle node, uint64_t target_channel){
         static_cast<interface_t*>(node)->send(message, target_channel);
         return NADI_OK;
     }
